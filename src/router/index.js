@@ -14,15 +14,14 @@ var router = new Router({
       path: '/home',
       component: Home,
       redirect: '/welcome',
-      children: [
-        {
-          path: '/users',
-          component: User
-        },
-        {
-          path: '/welcome',
-          component: Welcome
-        }
+      children: [{
+        path: '/users',
+        component: User
+      },
+      {
+        path: '/welcome',
+        component: Welcome
+      }
       ]
     },
     {

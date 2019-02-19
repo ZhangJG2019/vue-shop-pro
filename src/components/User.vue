@@ -81,7 +81,7 @@
         :total="querycdt.tot"
       ></el-pagination>
       <!-- 数据分页结束 -->
-      <!-- 添加用户对话框 开始 -->
+      <!-- 添加用户---【对话框】 开始 -->
       <el-dialog title="添加用户" :visible.sync="addDialogVisible" width="50%" @close="addDialogClose">
         <el-form :rules="addFormRules" ref="addFormRef" :model="addForm" label-width="80px">
           <el-form-item label="用户名" prop="username">
@@ -102,8 +102,8 @@
           <el-button type="primary" @click="addUser">确 定</el-button>
         </span>
       </el-dialog>
-      <!-- 添加用户对话框 结束-->
-      <!-- 修改用户对话框开始 -->
+      <!-- 添加用户---【对话框】 结束-->
+      <!-- 修改用户---【对话框】开始 -->
       <el-dialog
         title="修改用户"
         :visible.sync="editDialogVisible"
@@ -126,9 +126,9 @@
           <el-button type="primary" @click="editUser">确 定</el-button>
         </span>
       </el-dialog>
-      <!-- 修改用户对话框结束 -->
-      <!-- card卡片区域 结束-->
+      <!-- 修改用户---【对话框】结束 -->
     </el-card>
+    <!-- card卡片区域 结束-->
   </div>
 </template>
 
@@ -262,7 +262,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       })
-        .then(async () => {
+        .then(async() => {
           // axios调用api删除数据
           const { data: res } = await this.$http.delete('users/' + id)
           if (res.meta.status !== 200) {
@@ -270,6 +270,11 @@ export default {
           }
           // 删除成功：消息提示、刷新数据
           this.$message.success(res.meta.msg)
+          // 判断当前页码如果只有1条数据（现在已经被删除了），并且当前是非首页，就让当前页码-1，进入前一页
+          if (this.userInfos.length === 1 && this.querycdt.pagenum > 1) {
+            // 当前页码减一
+            this.querycdt.pagenum--
+          }
           this.getUserInfos()
         })
         .catch(() => {})
@@ -288,7 +293,7 @@ export default {
         }
         // 添加成功：关闭对话框，成功提示，显示新添加数据
         this.addDialogVisible = false
-        this.$message.error(res.meta.msg)
+        this.$message.success(res.meta.msg)
         /**
           this.$message({
           message: '恭喜你，这是一条成功消息',

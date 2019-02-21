@@ -64,7 +64,12 @@
               @click="delUser(info.row.id)"
             ></el-button>
             <el-tooltip content="分配角色" placement="top" :enterable="false">
-              <el-button type="warning" icon="el-icon-setting" size="mini"></el-button>
+              <el-button
+                type="warning"
+                icon="el-icon-setting"
+                size="mini"
+                @click="showFenpeiDialog(info.row.id)"
+              ></el-button>
             </el-tooltip>
           </template>
         </el-table-column>
@@ -81,6 +86,37 @@
         :total="querycdt.tot"
       ></el-pagination>
       <!-- 数据分页结束 -->
+      <!-- 分配角色弹窗 开始-->
+      <el-dialog
+        title="分配的角色"
+        :visible.sync="fenpeiDialogVisible"
+        width="50%"
+        @close="fenpeiDialogClose"
+      >
+        <el-form
+          :rules="fenpeiFormRoules"
+          ref="fenpeiFormRef"
+          :model="fenpeiForm"
+          label-width="120px"
+        >
+          <el-form-item label="当前的用户" prop="username">{{fenpeiForm.username}}</el-form-item>
+          <el-form-item label="分配的角色" prop="rid">
+            <el-select v-model="fenpeiForm.rid" placeholder="请选择">
+              <el-option
+                v-for="item in roleInfos"
+                :key="item.id"
+                :label="item.roleName"
+                :value="item.id"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+        </el-form>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="fenpeiDialogVisible=false">取消</el-button>
+          <el-button type="primary" @click="fenpeiUser">确定</el-button>
+        </span>
+      </el-dialog>
+      <!-- 分配角色弹窗 结束-->
       <!-- 添加用户---【对话框】 开始 -->
       <el-dialog title="添加用户" :visible.sync="addDialogVisible" width="50%" @close="addDialogClose">
         <el-form :rules="addFormRules" ref="addFormRef" :model="addForm" label-width="80px">
@@ -151,6 +187,20 @@ export default {
       callback()
     }
     return {
+      // 分配角色相关
+      // 在return中选取供选择的角色信息
+      roleInfos: [],
+      fenpeiDialogVisible: false,
+      // 校验规则验证
+      fenpeiFormRoules: {
+        rid: [{ required: 'true', message: '角色必选', trigger: 'change' }]
+      },
+      // 表单数据对象
+      fenpeiForm: {
+        id: 0, // 当前用户的id
+        username: '', // 当前被修改的角色id
+        rid: 0 // 角色的id
+      },
       // 修改用户相关
       // 控制修改用户对话框是否显示（true：显示，false：隐藏）
       editDialogVisible: false,
@@ -208,6 +258,55 @@ export default {
     }
   },
   methods: {
+    // 展开分配角色的对话框
+    // id:被分配角色的id
+    async showFenpeiDialog(id) {
+      // 展开对话框
+      this.fenpeiDialogVisible = true
+      // 根据id获得当前被分配的角色的用户信息
+      const { data: res } = await this.$http.get('users/' + id)
+      if (res.meta.status !== 200) {
+        return this.$message.error(res.meta.msg)
+      }
+      // 把获取好的用户信息赋予fenpeiForm
+      this.fenpeiForm = res.data
+      // 设置rid
+      if (this.fenpeiForm.rid === 0) {
+        this.fenpeiForm.rid = ''
+      }
+      // 把供分配的角色信息获得出来
+      const { data: res2 } = await this.$http.get('roles')
+      if (res2.meta.status !== 200) {
+        return this.$message.error(res.meta.msg)
+      }
+      // 接受角色并赋予给roleInfos
+      this.roleInfos = res2.data
+    },
+    // 收集数据存储
+    fenpeiUser() {
+      // from表单校验
+      this.$refs.fenpeiFormRef.validate(async valid => {
+        if (valid) {
+          const { data: res2 } = await this.$http.put(
+            'users/' + this.fenpeiForm.id + '/role',
+            this.fenpeiForm
+          )
+          // 把供分配的角色信息获得出来
+          if (res2.meta.status !== 200) {
+            return this.$message.error(res2.meta.msg)
+          }
+          // 分配角色成功， 弹窗关闭 提示信息 页面重新加载
+          this.fenpeiDialogVisible = false
+          this.$message.success(res2.meta.msg)
+          this.getUserInfos()
+        }
+      })
+    },
+    // 设置fenpeiDialog关闭弹窗，清空 提示信息和输入框内容
+    fenpeiDialogClose() {
+      // 重置from表单
+      this.$refs.fenpeiFormRef.resetFields()
+    },
     // 修改用户相关开始
     // 修改用户，收集修改信息并进行存储
     editUser() {

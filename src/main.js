@@ -9,6 +9,8 @@ import './assets/css/global.css'
 import './assets/fonts/iconfont.css'
 // 引入element-ui组件模块
 import ElementUI from 'element-ui'
+// 引入table-tree
+import ZkTable from 'vue-table-with-tree-grid'
 
 // 引入axios并做相关配置
 import axios from 'axios'

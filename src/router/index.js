@@ -7,6 +7,8 @@ import Welcome from '@/components/Welcome'
 import User from '@/components/User'
 import Rights from '@/components/Rights'
 import Roles from '@/components/Roles'
+import Cat from '@/components/Cat'
+
 
 Vue.use(Router)
 
@@ -15,6 +17,11 @@ var router = new Router({
     {
       path: '/login',
       component: Login
+    },
+    {
+      path: '/',
+      component: Welcome,
+      redirect: '/welcome'
     },
     {
       path: '/home',
@@ -36,6 +43,10 @@ var router = new Router({
         {
           path: '/users',
           component: User
+        },
+        {
+          path: '/categories',
+          component: Cat
         }
       ]
     }

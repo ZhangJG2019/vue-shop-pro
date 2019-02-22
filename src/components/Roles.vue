@@ -55,9 +55,76 @@
         </span>
       </el-dialog>
       <!-- 修改角色弹窗 结束-->
+      <!-- 分配权限弹窗 开始-->
+      <el-dialog title="分配权限" :visible.sync="distributeDialogVisible" width="50%">
+        <el-form :model="distributeForm" label-width="120px">
+          <el-form-item label="当前的角色">{{distributeForm.roleName}}</el-form-item>
+          <el-form-item label="分配的权限">
+            <el-tree
+              :data="rightInfos"
+              :props="rightInfosProps"
+              node-key="id"
+              show-checkbox
+              default-expand-all
+              :default-checked-keys="defaultCheckedKeys"
+              ref="rightsRef"
+            >
+              <!-- :data设定“树”中数据
+                  :props给大树设置数据属性，例如显示的名称、起作用的值得部分
+                  node-key给每个树节点设置唯一属性，用户实际应用，后期选取某个节点后，就会把这个id值获得到
+                  show-checkbox  显示复选框
+                  default-expand-all  展开全部的树节点
+                  :default-checked-keys    选中默认叶子节点
+                  ref="rightsRef"  设置ref属性，后期可以获得大树对象
+              -->
+            </el-tree>
+          </el-form-item>
+        </el-form>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="distributeDialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="distributeRights">确 定</el-button>
+        </span>
+      </el-dialog>
+      <!-- 分配权限弹窗 结束-->
       <!-- 角色列表显示  开始-->
       <el-table :data="rolesInfos" border style="width: 100%">
-        <el-table-column width="60"></el-table-column>
+        <el-table-column type="expand">
+          <template slot-scope="info">
+            <!-- 一级权限显示 -->
+            <el-row
+              v-for="(item,k) in info.row.children"
+              :key="item.id"
+              :style="k===0?'border-bottom:1px solid #EBEEF5;border-top:1px solid #EBEEF5':'border-bottom:1px solid #EBEEF5;'"
+            >
+              <el-col :span="5">
+                <el-tag closable>{{item.authName}}</el-tag>
+                <i class="el-icon-caret-right"></i>
+              </el-col>
+              <el-col :span="19">
+                <!-- 二级权限显示 -->
+                <el-row
+                  v-for="(item2,k2) in item.children"
+                  :key="item2.id"
+                  :style="{'border-top':k2!==0?'1px solid #EBEEF5':''}"
+                >
+                  <el-col :span="6">
+                    <el-tag type="success" closable="true">{{item2.authName}}</el-tag>
+                    <i class="el-icon-caret-right"></i>
+                  </el-col>
+                  <el-col :span="18">
+                    <!-- 三级权限显示 -->
+                    <el-tag
+                      type="warning"
+                      v-for="item3 in item2.children"
+                      :key="item3.id"
+                      closable="true"
+                    >{{item3.authName}}</el-tag>
+                  </el-col>
+                </el-row>
+              </el-col>
+            </el-row>
+          </template>
+        </el-table-column>
         <el-table-column type="index" label="序号" width="60"></el-table-column>
         <el-table-column prop="roleName" label="角色名称"></el-table-column>
         <el-table-column prop="roleDesc" label="角色描述" width="310"></el-table-column>
@@ -76,7 +143,13 @@
               @click="delUser(info.row.id)"
             >删除</el-button>
             <el-tooltip content="分配角色" placement="top" :enterable="false">
-              <el-button type="warning" icon="el-icon-setting" size="mini">分配权限</el-button>
+              <!-- tooltip鼠标悬浮文字提示 -->
+              <el-button
+                type="warning"
+                icon="el-icon-setting"
+                size="mini"
+                @click="showDistrbuteDialog(info.row)"
+              >分配权限</el-button>
             </el-tooltip>
           </template>
         </el-table-column>
@@ -94,6 +167,24 @@ export default {
   },
   data() {
     return {
+      // 设置树节点默认选中,条件：当前角色拥有的权限要选中
+      defaultCheckedKeys: [], // 默认  树节点选中  数据
+      // 分配相关 开始
+      // 接收被分配的权限列表
+      rightInfos: [],
+      // 给大树设置属性字段
+      rightInfosProps: {
+        label: 'authName', // 设置“树节点”名称
+        children: 'children' // 设置子节点树的名称
+      },
+      // 表单数据对象
+      distributeForm: {
+        id: 0, // 被分配权限角色id信息
+        roleName: '' // 被分配权限角色名称信息
+      },
+      // 关闭对话框
+      distributeDialogVisible: false,
+      // 分配相关 结束
       // 角色列表
       rolesInfos: [],
       // 添加角色弹窗，默认不显示
@@ -131,6 +222,61 @@ export default {
     }
   },
   methods: {
+    // 分配相关 开始
+    // 展示分配权限的对话框
+    // role:被分配权限的一条角色记录信息（包括id/roleName/roleDesc/children）
+    async showDistrbuteDialog(role) {
+      // 显示对话框
+      this.distributeDialogVisible = true
+      // 把role赋予给distributeForm表单
+      this.distributeForm = role
+      // 给大树 获得要展示的数据部分：
+      // 把用户分配的权限数据获得出来
+      const { data: res } = await this.$http.get('rights/tree')
+      if (res.meta.status !== 200) {
+        return this.$message.error(res.meta.msg)
+      }
+      // 把获得好权限数据 赋予 给data成员rightsInfo
+      this.rightInfos = res.data
+      // 设置树节点默认选中
+      // n条件：当前角色拥有的权限要选中
+      // 从role中 把末级权限id获得出来 并存储到arrIds中
+      var arrIds = [] // 末级权限接受变量 用数组
+      this.getHaveRights(role, arrIds)
+      // arrIds就是当前角色拥有的权限集合的数组【101,107,120,133....】
+      this.defaultCheckedKeys = arrIds
+    },
+    // 通过“递归遍历”的方式，把一个角色对应的“末级权限”的id获得出来
+    getHaveRights(node, keys) {
+      if (!node.children) {
+        return keys.push(node.id)
+      }
+      node.children.forEach(item => {
+        return this.getHaveRights(item, keys)
+      })
+    },
+    // 声明存储好的权限信息
+    async distributeRights() {
+      // 把”全选“节点的id信息获得到，通过数组返回
+      var ids1 = this.$refs.rightsRef.getCheckedKeys()
+      // 把”半选“节点的id信息获得到，通过数组返回
+      var ids2 = this.$refs.rightsRef.getHalfCheckedKeys()
+      // 把”全选和半选“的权限id合并到一起，通过逗号链接变为字符串
+      var allids = [...ids1, ...ids2].join(',')
+      // 调用axios，把当前角色选取的权限存储到后端
+      const { data: res } = await this.$http.post(
+        'roles/' + this.distributeForm.id + '/rights',
+        { rids: allids }
+      )
+      if (res.meta.status !== 200) {
+        return this.$message.error(res.meta.msg)
+      }
+      // 添加权限成功，关闭对话框，成功提示，页面重新加载
+      this.distributeDialogVisible = false
+      this.$message.success(res.meta.msg)
+      this.getRoleInfos()
+    },
+    // 分配相关 结束
     // 创建修改需要的事件方法
     async showEditDialog(id) {
       // 展示弹窗
@@ -261,4 +407,11 @@ export default {
 </script>
 
 <style lang="less" scoped>
+.el-tag {
+  margin: 10px 5px;
+}
+.el-row {
+  display: flex;
+  align-items: center;
+}
 </style>

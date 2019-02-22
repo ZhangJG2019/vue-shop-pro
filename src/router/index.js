@@ -45,7 +45,7 @@ var router = new Router({
           component: User
         },
         {
-          path: '/cat',
+          path: '/categories',
           component: Cat
         }
       ]

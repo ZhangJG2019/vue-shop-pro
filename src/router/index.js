@@ -8,7 +8,10 @@ import User from '@/components/User'
 import Rights from '@/components/Rights'
 import Roles from '@/components/Roles'
 import Cat from '@/components/Cat'
+<<<<<<< HEAD
 
+=======
+>>>>>>> cat
 
 Vue.use(Router)
 

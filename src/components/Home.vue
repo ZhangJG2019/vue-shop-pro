@@ -62,7 +62,7 @@ export default {
     async getMenuList() {
       // 获得用于显示的左侧导航权限信息
       const { data: res } = await this.$http.get('/menus')
-      console.log(res)
+      // console.log(res)
       // 获取失败处理
       if (res.meta.status !== 200) {
         return this.$message.error(res.meta.msg)

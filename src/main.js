@@ -4,11 +4,12 @@ import router from './router'
 
 // 引入global.css全局样式控制文件
 import './assets/css/global.css'
-
 // 引入“图标”CSS
 import './assets/fonts/iconfont.css'
 // 引入element-ui组件模块
 import ElementUI from 'element-ui'
+// 引入table-tree
+import ZkTable from 'vue-table-with-tree-grid'
 
 // 引入axios并做相关配置
 import axios from 'axios'
@@ -32,6 +33,8 @@ axios.interceptors.request.use(
 
 // 把element-ui注册Vue
 Vue.use(ElementUI)
+// 注册table-tree
+Vue.use(ZkTable)
 
 Vue.config.productionTip = false
 

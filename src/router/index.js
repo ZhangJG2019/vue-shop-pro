@@ -8,6 +8,10 @@ import User from '@/components/User'
 import Rights from '@/components/Rights'
 import Roles from '@/components/Roles'
 import Cat from '@/components/Cat'
+import Param from '@/components/Param'
+import Goods from '@/components/Goods'
+import Goodsadd from '@/components/Goodsadd'
+import Reports from '@/components/Reports'
 
 Vue.use(Router)
 
@@ -46,6 +50,22 @@ var router = new Router({
         {
           path: '/categories',
           component: Cat
+        },
+        {
+          path: '/params',
+          component: Param
+        },
+        {
+          path: '/goods',
+          component: Goods
+        },
+        {
+          path: '/goodsadd',
+          component: Goodsadd
+        },
+        {
+          path: '/reports',
+          component: Reports
         }
       ]
     }

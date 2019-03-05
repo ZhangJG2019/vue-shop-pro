@@ -10,6 +10,10 @@ import './assets/fonts/iconfont.css'
 import ElementUI from 'element-ui'
 // 引入table-tree
 import ZkTable from 'vue-table-with-tree-grid'
+// 引入nprogress模块
+import NProgress from 'nprogress'
+// 引入nprogress css模块
+import 'nprogress/nprogress.css'
 
 // 引入axios并做相关配置
 import axios from 'axios'
@@ -22,6 +26,8 @@ Vue.prototype.$http = axios
 axios.interceptors.request.use(
   function(config) {
     // config:代表axios的子级配置对象
+    // 设置加载进度条
+    NProgress.start()
     var token = window.sessionStorage.getItem('token')
     config.headers.Authorization = token
     return config
@@ -30,6 +36,15 @@ axios.interceptors.request.use(
     return Promise.reject(error)
   }
 )
+// axios响应拦截器
+axios.interceptors.request.use(function(response) {
+  // 设置加载进度条（结束）
+  NProgress.done()
+  return response
+},
+function(error) {
+  return Promise.reject(error)
+})
 
 // 把element-ui注册Vue
 Vue.use(ElementUI)

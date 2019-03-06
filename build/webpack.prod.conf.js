@@ -21,6 +21,14 @@ const webpackConfig = merge(baseWebpackConfig, {
       usePostCSS: true
     })
   },
+  externals:{
+    // 包名: 构造函数
+    vue:'Vue',
+    'vue-router':'VueRouter',
+    axios:'axios',
+    echarts:'echarts',
+    'nprogress':'NProgress'
+    },
   devtool: config.build.productionSourceMap ? config.build.devtool : false,
   output: {
     path: config.build.assetsRoot,

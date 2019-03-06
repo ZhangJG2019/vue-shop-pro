@@ -103,7 +103,7 @@ export default {
         Authorization: window.sessionStorage.getItem('token')
       },
       // 上传图片路径
-      uploadUrl: 'http://127.0.0.1:8888/api/private/v1/upload',
+      uploadUrl: 'http://127.0.0.1:8765/api/private/v1/upload',
       // 接收选取的第三级别分类id
       catThreeId: 0,
       // 设置 或 接收 选择器中选中的项目

@@ -17,6 +17,19 @@ const devWebpackConfig = merge(baseWebpackConfig, {
   module: {
     rules: utils.styleLoaders({ sourceMap: config.dev.cssSourceMap, usePostCSS: true })
   },
+  // 配置引入外网的静态资源模块
+  externals:{
+      // 语法
+      // 模块名称: 构造函数
+      // 模块名称: 一般 import *** from ‘模块名称’
+    // 构造函数：模块被引入后给系统增加的全局变量名（window可以访问的）
+    // 包名: 构造函数
+    vue:'Vue',// Vue来源于index.html页面中的导入
+    'vue-router':'VueRouter',
+    axios:'axios',
+    echarts:'echarts',
+    'nprogress':'NProgress'
+    },
   // cheap-module-eval-source-map is faster for development
   devtool: config.dev.devtool,
 
